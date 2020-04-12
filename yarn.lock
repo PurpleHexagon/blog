@@ -10839,6 +10839,11 @@ rc@^1.2.7, rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-awesome-styled-grid@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/react-awesome-styled-grid/-/react-awesome-styled-grid-3.0.4.tgz#3fd5b195e1733cba21a19e2b20e676ac8f2280ed"
+  integrity sha512-moz+1RxerB+MmpRFSdkj6XA+XmSu8+DRRur7fkgY8mdVsx7Kz8inx2+wF1h0klDHF5oMPhJ9Ev7cEoOknx3aQA==
+
 react-dev-utils@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/react-dev-utils/-/react-dev-utils-4.2.3.tgz#5b42d9ea58d5e9e017a2f57a40a8af408a3a46fb"
@@ -11900,6 +11905,11 @@ simple-get@^3.0.3, simple-get@^3.1.0:
     decompress-response "^4.2.0"
     once "^1.3.1"
     simple-concat "^1.0.0"
+
+simple-json-fetch@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/simple-json-fetch/-/simple-json-fetch-1.0.1.tgz#147edb807fb48b891d6a46ba1cec0da39378788d"
+  integrity sha1-FH7bgH+0i4kdaka6HOwNo5N4eI0=
 
 simple-swizzle@^0.2.2:
   version "0.2.2"

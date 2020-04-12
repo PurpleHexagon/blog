@@ -7,10 +7,10 @@ module.exports = {
       appbar: {
         position: "sticky",
         links: [
-          {
-            title: "Tags",
-            url: "/tags"
-          },
+          // {
+          //   title: "Tags",
+          //   url: "/tags"
+          // },
           {
             title: "CV",
             url: "/cv"
@@ -30,6 +30,10 @@ module.exports = {
               {
                 title: "Stackoverflow",
                 url: "https://stackoverflow.com/users/1185180/purple-hexagon"
+              },
+              {
+                title: "LinkedIn",
+                url: "https://www.linkedin.com/in/jonathan-day-801a98109/"
               },
             ]
           },
