@@ -35,6 +35,10 @@ module.exports = {
                 title: "LinkedIn",
                 url: "https://www.linkedin.com/in/jonathan-day-801a98109/"
               },
+              {
+                title: "ObservableHQ",
+                url: "https://observablehq.com/@purplehexagon"
+              },
             ]
           },
         ]
@@ -84,6 +88,52 @@ module.exports = {
         display: `standalone`,
         icon: `src/images/favicon.png`
       }
-    }
+    },
+    {
+      resolve: `gatsby-plugin-mdx`,
+      options: {
+        extensions: ['.mdx', '.md'],
+        // a workaround to solve mdx-remark plugin compat issue
+        // https://github.com/gatsbyjs/gatsby/issues/15486
+        plugins: [
+          `gatsby-remark-images`,
+        ],
+        gatsbyRemarkPlugins: [
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 590,
+            },
+          },
+          {
+            resolve: `gatsby-remark-responsive-iframe`,
+            options: {
+              wrapperStyle: `margin-bottom: 1.0725rem`,
+            },
+          },
+          {
+            resolve: `gatsby-remark-copy-linked-files`,
+          },
+
+          {
+            resolve: `gatsby-remark-smartypants`,
+          },
+        ],
+      },
+    },
+    // {
+    //   resolve: 'gatsby-plugin-mdx',
+    //   options: {
+    //     extensions: [`.mdx`, `.md`],
+    //     plugins: [
+    //       {
+    //         resolve: 'gatsby-remark-prismjs',
+    //         options: {
+    //           classPrefix: "languageaa-",
+    //         }
+    //       }
+    //     ]
+    //   }
+    // },
   ]
 };

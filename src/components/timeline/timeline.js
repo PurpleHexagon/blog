@@ -28,9 +28,11 @@ const Timeline = ({ className }) => {
             < br/><small
                 className='timeline__title--small'>({job.duration || 'present'})</small></div>
             <p>{job.description}</p>
-            <ul id="key_accomplishments">
-              {kA}
-            </ul>
+            <div className="key_accomplishments_container">
+              <ul className="key_accomplishments_container__key_accomplishments">
+                {kA}
+              </ul>
+            </div>
 
           </div>
         </article>
@@ -52,6 +54,13 @@ export default styled(Timeline)`
     width: 1px;
     height: calc(100% - 70px);
     background: #25303B;
+  }
+  .key_accomplishments_container {
+      background: #fff;
+      overflow: auto;
+  }
+  .key_accomplishments_container__key_accomplishments li {
+    font-size: 0.8rem;
   }
   .timeline__item {
     width: 100%;
@@ -150,9 +159,6 @@ export default styled(Timeline)`
   }
   .timeline__item:nth-child(2n+2) div.inner h2:after {
     left: -5px;
-  }
-  #key_accomplishments li {
-    font-size: 0.8rem;
   }
   .timeline__title--shrink {
       padding: 3px 15px;

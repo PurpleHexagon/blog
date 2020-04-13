@@ -1,0 +1,44 @@
+---
+id: "fast-jsonapi-1"
+title: "A lightning fast JSON:API serializer for Ruby Objects"
+author: JonDay
+featuredImage: featured.jpg
+tags: [ruby, rails, api]
+---
+
+
+da
+
+I often use the JSON API specification when building APIs. Previously I was often using Hal+json
+ but found JSON API to be much better.
+ 
+In a recent RoR project I went looking for a good library to use to implement JSON API in my Rails API. After some research I found that a combination of Netflix fast_jsonapi and restful-jsonapi packages was the best route to take.
+
+Whilst the documentation on the Netflix repositories was fairly good to get me started, when I started doing more complex things I was finding I had to dig through the sourcecode and debug it myself.
+
+So I decided to document what I have found for my benefit in the future and hopefully others may also find this helpful. 
+
+Full disclaimer since I worked out these techniques myself I am unsure if I am fully using the library correctly. If anyone works out some better ways to use I'd be interested to hear their techniques.
+
+## POSTing data
+
+I used the restful-jsonapi library to capture user input from POST request body. a
+
+
+```ruby
+class Farm
+  def fields_attributes=(fieldsData)
+    self.fields = Field.create(fieldsData)
+  end
+end
+```
+
+
+```javascript
+var s = "JavaScript syntax highlighting";
+alert(s);
+```
+
+```js
+const some = {}
+```
