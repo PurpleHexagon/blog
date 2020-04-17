@@ -71,6 +71,16 @@ module.exports = {
       keyAccomplishments: ["Cloudfront optimisation project"]
     },
     {
+      company: "omnastudios.co.uk (freelance)",
+      begin: {
+        month: 'Jul',
+        year: '2018'
+      },
+      duration: '0 yr 1 mos',
+      occupation: "Design & Web Dev",
+      description: "Logo design and branding Designed and built website using Grav CMS"
+    },
+    {
       company: "Simitive",
       begin: {
         month: 'Sept',

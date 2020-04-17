@@ -76,10 +76,10 @@ export default function PostTemplate({ data, pageContext }) {
             </Typography>
             <Tags tags={tags} />
           </Box>
-          {/*<Img*/}
-          {/*  fluid={featuredImage.childImageSharp.fluid}*/}
-          {/*  style={{ borderRadius: 2 }}*/}
-          {/*/>*/}
+          <Img
+            fluid={featuredImage.childImageSharp.fluid}
+            style={{ borderRadius: 2 }}
+          />
           <article className={classes.article}>
             <MDXRenderer>{body}</MDXRenderer>
           </article>

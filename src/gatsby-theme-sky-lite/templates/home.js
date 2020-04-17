@@ -26,7 +26,7 @@ const Posts = ({ posts, pathPrefix }) => {
           return (
             <Grid item xs={12} sm={4} key={id}>
               <Card
-                // featuredImage={featuredImage}
+                featuredImage={featuredImage}
                 title={title}
                 url={`/${pathPrefix}/${id}`}
                 postDate={postDate}

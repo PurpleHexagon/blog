@@ -2,7 +2,7 @@ module.exports = {
   siteMetadata: {
     title: `Purple Hexagon`,
     siteUrl: `https://yoursite.com`,
-    description: "Jon Day's technical blog exploring Software Dev, Data Science and more",
+    description: "Jon Day's technical blog exploring Software Development, Data Science and more",
     components: {
       appbar: {
         position: "sticky",

@@ -2,28 +2,133 @@
 id: "fast-jsonapi-1"
 title: "A lightning fast JSON:API serializer for Ruby Objects"
 author: JonDay
-featuredImage: featured.jpg
+featuredImage: grayscale-photo-of-computer-laptop-near-white-notebook-and-169573.jpg
 tags: [ruby, rails, api]
 ---
 
-
-da
-
-I often use the JSON API specification when building APIs. Previously I was often using Hal+json
- but found JSON API to be much better.
+When building RESTful APIs I generally try to use build them using a HATEOAS architecture. JSON API is my preferred specification to adhere to, though previously I was often using Hal+json
+ but found JSON API to gel with me personally more. I am also keen to try and JSON-LD which looks like it could be a game changer but that's a story for another day and another post.
  
 In a recent RoR project I went looking for a good library to use to implement JSON API in my Rails API. After some research I found that a combination of Netflix fast_jsonapi and restful-jsonapi packages was the best route to take.
 
-Whilst the documentation on the Netflix repositories was fairly good to get me started, when I started doing more complex things I was finding I had to dig through the sourcecode and debug it myself.
+Whilst the documentation on the Netflix repositories was fairly good to get me started, when I started doing more complex things I was finding I had to dig through the sourcecode and debug it myself. So I decided to document what I have found for my benefit in the future and hopefully others may also find this helpful.
 
-So I decided to document what I have found for my benefit in the future and hopefully others may also find this helpful. 
+I'm not going to go into the general setup of these libraries as this can already be found in the readme files. The repositories I'm using are https://github.com/Netflix/fast_jsonapi and https://github.com/Netflix/restful-jsonapi.
 
-Full disclaimer since I worked out these techniques myself I am unsure if I am fully using the library correctly. If anyone works out some better ways to use I'd be interested to hear their techniques.
+_Example code is taken from an Agritech application I am currently writing._
+
+*__Disclaimer: Since I worked out these techniques myself I am unsure if I am fully using the libraries correctly and to their potential. If anyone works out some better ways to use I'd be interested to hear their techniques.__*
 
 ## POSTing data
 
-I used the restful-jsonapi library to capture user input from POST request body. a
+I used the restful-jsonapi library to capture user input from POST request body.
 
+I wanted to be able to send POST requests with the following body to be able to create a farm resource, create a relationship with an existing company and create a new related field resource.
+
+```json
+{
+	"data": {
+		"attributes": {
+			"name": "My Farm",
+			"description": "Farm 1",
+		},
+		"relationships": {
+	      "company": {
+	        "data": {"id": "1"}
+	      },
+	      "fields": {
+	      	"data": [
+	      		{
+	      		"attributes": {
+	    			"name": "Top Field",
+	    			"description": "You know the big at the top.",
+	    		}
+	      	}]
+	      }
+	    }
+	}
+}
+```
+
+I found the follow controller code was required to achieve this:
+
+```ruby
+class FarmsController < ApplicationController
+  before_action :set_farm, only: [:show, :edit, :update, :destroy]
+
+  # POST /farms
+  def create
+    @farm = Farm.new(farm_params_jsonapi)
+
+    respond_to do |format|
+      if @farm.save
+        format.html { redirect_to @farm, notice: 'Farm was successfully created.' }
+        format.json {
+          options = {}
+          options[:is_collection] = false
+
+          render json: FarmSerializer.new(@farm, options).serialized_json
+        }
+      else
+        errors = fetch_errors(@farm)
+
+        format.html { render :new }
+
+        format.json {
+          render json: RequestErrorSerializer.new(errors).serialized_json,
+                 status: :unprocessable_entity
+        }
+      end
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_farm
+      @farm = Farm.find(params[:id])
+    end
+
+    def farm_params
+      params[:include] ||= []
+
+      params.permit([include: []], [page: [:number, :size]], :id, :all)
+    end
+
+    def farm_params_jsonapi
+      restify_param(:farm).require(:farm)
+                          .permit(
+                            :id,
+                            :name,
+                            :description,
+                            :company_id,
+                            fields_attributes: [
+                                :id,
+                                :name,
+                                :description,
+                            ],
+                            fields: [
+                                :id,
+                                :name,
+                                :description,
+                            ],
+                            relationships: []
+                          )
+    end
+
+    def fetch_errors
+      errors = []
+        entity.errors.each do |key, value|
+          errors << Error.new(key, value)
+        end
+
+      return errors
+    end
+end
+```
+
+The library will transform the data so that nested related data will be flattened and the property will be appended with '_attributes'.
+
+In order to have new records created automatically I found I needed to add the following to my rails model.
 
 ```ruby
 class Farm
@@ -33,12 +138,95 @@ class Farm
 end
 ```
 
+Having to add the '_attributes' property to the params hash and having to then add a method to my models was not how I was hoping this would work. But I personally couldn't find a better way to do this so far and decided that since this worked I would crack on with actually building my API.
 
-```javascript
-var s = "JavaScript syntax highlighting";
-alert(s);
+### Serializers
+
+For transformering and serializing data from a Ruby object to JSON in the correct data shape I used fast_jsonapi.
+
+An example of a serailizer:
+
+```ruby
+class FarmSerializer
+  include FastJsonapi::ObjectSerializer
+  attributes :id
+  attributes :name
+  attributes :description
+  has_many :fields
+end
 ```
 
-```js
-const some = {}
+An example of this class in use can be seen above in the controller codeblock. The code is fairly simple, just need to include FastJsonapi::ObjectSerializer then define attributes and relationships much like a Rails Model.
+
+## Paging
+
+Pagination can be done the following way ...
+
+## Included
+
+JSON API has the ability to switch between including relationships when you make a GET request and not including them.
+
+## Managing Errors
+
+To manage errors I created a an error serializer and a method to build up
+
+error.rb
+```ruby
+
+class Error
+  attr_accessor :detail, :title
+
+  @detail = []
+  @title = []
+
+  def initialize(title, detail)
+    @title = title
+    @detail = detail
+  end
+end
+```
+
+request_error_serializer.rb
+```ruby
+class RequestErrorSerializer
+  include FastJsonapi::ErrorSerializer
+
+  attributes :title, :detail
+end
+```
+
+error_serializer.rb
+```ruby
+require 'fast_jsonapi'
+
+module FastJsonapi::ErrorSerializer
+  extend ActiveSupport::Concern
+
+  included do
+    attr_accessor :with_root_key
+
+    include FastJsonapi::ObjectSerializer
+    set_id :title
+
+    def initialize(resource, options = {})
+      super
+      @with_root_key = options[:with_root_key] != false
+    end
+
+    def hash_for_one_record
+      logger.info super[:data]
+      serialized_hash = super[:data]&[:attributes]
+      return !with_root_key ? serialized_hash : {
+          errors: serialized_hash
+      }
+    end
+
+    def hash_for_collection
+      serialized_hash = super[:data]&.map{|err| err[:attributes]}
+      return !with_root_key ? serialized_hash : {
+          errors: serialized_hash
+      }
+    end
+  end
+end
 ```

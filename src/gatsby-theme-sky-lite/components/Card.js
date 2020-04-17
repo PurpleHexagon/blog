@@ -30,10 +30,10 @@ export default ({ featuredImage, title, postDate, excerpt, url }) => {
 
   return (
     <Card elevation={0} classes={{ root: classes.card }}>
-      {/*<Img*/}
-      {/*  fluid={featuredImage.childImageSharp.fluid}*/}
-      {/*  style={{ borderRadius: 2 }}*/}
-      {/*/>*/}
+      <Img
+        fluid={featuredImage.childImageSharp.fluid}
+        style={{ borderRadius: 2 }}
+      />
       <CardContent classes={{ root: classes.cardContent }}>
         <Typography
           gutterBottom
