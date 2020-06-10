@@ -12,6 +12,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import moment from "moment";
+import styled from "styled-components";
 
 const useStyles = makeStyles(() => ({
   cardActions: {
@@ -22,20 +23,35 @@ const useStyles = makeStyles(() => ({
   },
   cardContent: {
     padding: 12
-  }
+  },
+  gatsbyImageWrapper: {
+      minHeight: '220px'
+  },
 }));
+
+const CardImg = styled(Img)`
+  min-height: 220px
+`
+
+const CardTypographyH6 = styled(Typography)`
+  min-height: 60px
+`
+const CardContentBlog = styled(CardContent)`
+  min-height: 255px
+`
 
 export default ({ featuredImage, title, postDate, excerpt, url }) => {
   const classes = useStyles();
 
   return (
     <Card elevation={0} classes={{ root: classes.card }}>
-      <Img
+      <CardImg
         fluid={featuredImage.childImageSharp.fluid}
         style={{ borderRadius: 2 }}
+        // classes={{ root: classes.gatsbyImageWrapper }}
       />
-      <CardContent classes={{ root: classes.cardContent }}>
-        <Typography
+      <CardContentBlog classes={{ root: classes.cardContent }}>
+        <CardTypographyH6
           gutterBottom
           variant="h6"
           style={{
@@ -47,7 +63,7 @@ export default ({ featuredImage, title, postDate, excerpt, url }) => {
           }}
         >
           {title}
-        </Typography>
+        </CardTypographyH6>
         <Typography variant="caption" color="textSecondary">
           {moment(postDate).format("LL")}
         </Typography>
@@ -62,7 +78,7 @@ export default ({ featuredImage, title, postDate, excerpt, url }) => {
         >
           {excerpt}
         </Typography>
-      </CardContent>
+      </CardContentBlog>
       <CardActions classes={{ root: classes.cardActions }}>
         <Button component={Link} to={url} variant="outlined" color="secondary">
           Read More
