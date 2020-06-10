@@ -160,15 +160,60 @@ An example of this class in use can be seen above in the controller codeblock. T
 
 ## Paging
 
-Pagination can be done the following way ...
+Pagination can be done the following way.
+
+Ensure that you are allowing page params from user input such as
+
+```
+def model_params
+  params[:include] ||= []
+
+  params.permit([include: []], [page: [:number, :size]], :id)
+end
+```
+
+To use these parameters you can extract the values and set sensible defaults, passing these to your query:
+
+```
+if params.dig(:page, :number).nil? == false
+    page_number = params[:page][:number]
+else
+    page_number = 1
+end
+
+if params.dig(:page, :size).nil? == false
+    page_size = params[:page][:size]
+else
+    page_size = 50
+end
+
+offset = (page_number.to_i - 1) * page_size.to_i
+
+entities = Farm.all.offset(offset).limit(page_size)
+```
+
+You can then use a query string such as:
+
+```
+/farms?page[number]=2&page[size]=10
+```
 
 ## Included
 
 JSON API has the ability to switch between including relationships when you make a GET request and not including them.
 
+This can be controlled using a query string parameter of `include`.
+
+Example:
+```
+/farms?include[]=fields
+```
+
+This endpoint will now return full related field models in the included section of the response
+
 ## Managing Errors
 
-To manage errors I created a an error serializer and a method to build up
+To manage errors I created a an error serializer and a method to build up an error response for a single record or a collection.
 
 error.rb
 ```ruby

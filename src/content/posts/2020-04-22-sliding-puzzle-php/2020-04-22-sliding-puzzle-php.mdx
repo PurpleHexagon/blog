@@ -1,0 +1,421 @@
+---
+id: "sliding-puzzle-1"
+title: "Building a sliding puzzle (Part 1 - Backend)"
+author: JonDay
+featuredImage: featured.jpg
+tags: [php, puzzle]
+---
+
+In this blog post I will explore creating backend logic for a sliding puzzle game. This project was started on a train with no internet connection and the idea then later expanded upon.
+
+I liked the sound of building this as I wanted to explore the capabilities of NumPHP, and I thought this would be a good testing ground.
+
+Currently the NumPHP matrix is only used to store which tile is empty and which are not. Reflecting on this though I believe this data structure could be used to hold all information about the state of the puzzle.
+
+One thing that became quickly obvious about my original code was that when the tiles are shuffled randomly the puzzle was not always solvable.
+
+Rather than hard coding a specific set of starting tiles I decided to find out what rules a puzzle needed to adhere to, to be solvable. It turned out this mainly came down the grid size, the number of inversions and where the empty tile is.
+
+## The finished code:
+
+```php
+<?php declare(strict_types=1);
+namespace PurpleHexagon\Services\Puzzle;
+
+use LogicException;
+use RuntimeException;
+use NumPHP\Core\NumArray;
+
+/**
+ * Encapsulates logic for sliding puzzles
+ *
+ * Class PuzzleEngine
+ * @package PurpleHexagon\Services\Puzzle
+ */
+class PuzzleEngine
+{
+    /**
+     * The size of the puzzle, i.e. 9 or 16
+     * @var int
+     */
+    protected $puzzleSize;
+
+    /**
+     * The size of one dimension of the puzzle, a puzzle of size 9 will have
+     * a dimension of 3 for example
+     * @var int
+     */
+    protected $dimension;
+
+    /**
+     * Instance of NumArray representing the puzzle tile positions as a matrix
+     * which will be initialised with a multidimentional array
+     *
+     * Example of a solved puzzle:
+     * [
+     *     [1, 1, 1],
+     *     [1, 1, 1],
+     *     [1, 1, 0],
+     * ]
+     *
+     * @var array
+     */
+    protected $puzzleMatrix;
+
+    /**
+     * A shuffled array of tile indexes to be mutated as the puzzle is played
+     * @var array
+     */
+    protected $tiles = [];
+
+    /**
+     * Holds the solution for the puzzle, i.e. the tiles in the correct order
+     * @var array
+     */
+    protected $solution = [];
+
+    /**
+     * Whether the puzzle has been solved
+     * @var boolean
+     */
+    protected $isSolved = false;
+
+    /**
+     * Ensures the puzzle size is a square number. If it is then initialise tiles
+     * and solution properties to an array of indexes. Then mutates the tiles
+     * property using shuffle for psuedo random puzzle start point.
+     *
+     * Then initialises a matrix with the final element set to 0 as the last
+     * tile will always be empty.
+     *
+     * @param int $puzzleSize
+     */
+    public function __construct(int $puzzleSize)
+    {
+        $this->ensureIsSquareGuard($puzzleSize);
+        $this->tiles = $this->solution = range(1, $puzzleSize);
+        $this->puzzleSize = $puzzleSize;
+        $this->dimension = (int) sqrt($puzzleSize);
+
+        $this->shuffle();
+        while ($this->ensurePuzzleIsSolvable() === false) {
+            $this->shuffle();
+        }
+
+        foreach (range(1, $this->dimension) as $index) {
+            $puzzleRow = array_fill(0, $this->dimension, 1);
+            if ($index == $this->dimension) $puzzleRow[$index - 1] = 0;
+            $puzzleAsMultiDimensionalArray[] = $puzzleRow;
+        }
+
+        $this->puzzleMatrix = new NumArray(
+            $puzzleAsMultiDimensionalArray
+        );
+    }
+
+    /**
+     * Shuffle the tiles and set last tile value to the final value for puzzle size, ie 9 for size 9 puzzle
+     */
+    protected function shuffle()
+    {
+        $finalTileValue = pow($this->dimension, 2);
+        $lastTileIndex = $finalTileValue - 1;
+
+        shuffle($this->tiles);
+        $lastTile = $this->tiles[$lastTileIndex];
+        $this->tiles = array_map(
+            function ($value) use ($lastTile, $finalTileValue) {
+                if ($value === $finalTileValue) {
+                    return $lastTile;
+                }
+
+                return $value;
+            },
+            $this->tiles
+        );
+
+        $this->tiles[$lastTileIndex] = $finalTileValue;
+    }
+
+    /**
+     * Return the tiles
+     * @return array
+     */
+    public function getTiles()
+    {
+        return $this->tiles;
+    }
+
+    /**
+     * Return the tiles
+     * @return array
+     */
+    public function getPuzzleMatrix()
+    {
+        return $this->puzzleMatrix;
+    }
+
+    /**
+     * Update the puzzle matrix and tile properties which represents a move
+     * @param  int      $from
+     * @param  int      $to
+     * @return bool
+     */
+    public function move(int $from, int $to): bool
+    {
+        $this->isValidIndexForMove($from, $to);
+
+        $move = $this->createMoveMatrix($from, $to);
+        $newPuzzleMatrix = $this->puzzleMatrix->add($move);
+        $this->ensureMoveValid($newPuzzleMatrix->getData());
+        $this->puzzleMatrix = $newPuzzleMatrix;
+
+        $fromValue = $this->tiles[$from - 1];
+        $toValue = $this->tiles[$to - 1];
+        $this->tiles[$from - 1] = $toValue;
+        $this->tiles[$to - 1] = $fromValue;
+
+        if ($this->tiles === $this->solution) {
+            $this->isSolved = true;
+        } else {
+            $this->isSolved = false;
+        }
+
+        return $this->isSolved;
+    }
+
+    /**
+     * Returns false if the puzzle is not solvable
+     *
+     * Rules:
+     *
+     * If the grid width is odd, then the number of inversions in a solvable situation is even.
+     * If the grid width is even, and the blank is on an even row counting from the bottom (second-last, fourth-last etc), then the number of inversions in a solvable situation is odd.
+     * If the grid width is even, and the blank is on an odd row counting from the bottom (last, third-last, fifth-last etc) then the number of inversions in a solvable situation is even.
+     *
+     * Since the last tile is always the empty tile in this implementation rule two has not been implemented
+     *
+     * @return bool
+     */
+    protected function ensurePuzzleIsSolvable()
+    {
+        $inversions = $this->calculateInversions();
+
+        if (($this->dimension % 2 !== 0) && ($inversions % 2 === 0)) {
+            return true;
+        }
+
+        if (($this->dimension % 2 === 0) && ($inversions % 2 === 0)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Calculate inversions for current tiles
+     *
+     * An inversion is when a tile precedes another tile with a lower number on it.
+     *
+     * Total inversions is the count of all tiles with lower value for every tile
+     *
+     * @return int|mixed
+     */
+    protected function calculateInversions()
+    {
+        $inversions = 0;
+
+        foreach ($this->tiles as $outerTileIndex => $outerTile) {
+            foreach ($this->tiles as $innerTileIndex => $innerTile) {
+                if ($innerTileIndex < $outerTileIndex) {
+                    continue;
+                }
+
+                if ($outerTile === $innerTile || $innerTile > $outerTile) {
+                    continue;
+                }
+
+                $inversions += 1;
+            }
+        }
+
+        return $inversions;
+    }
+
+    /**
+     * Check if puzzleSize is a square number and throw exception if not
+     * @param  int    $puzzleSize
+     * @throws LogicException
+     */
+    protected function ensureIsSquareGuard(int $puzzleSize)
+    {
+        $squareRootOfPuzzleSize = sqrt($puzzleSize);
+        $remainder = fmod($squareRootOfPuzzleSize, 1);
+
+        // $remainder will be set to float(0) if the puzzle size is a square number
+        // and want to use strict type checking
+        if ($remainder !== 0.0) {
+            throw new LogicException(
+                sprintf(
+                    "%s::%s - Puzzles must be a square, please provide a valid puzzle size",
+                    __CLASS__,
+                    __FUNCTION__
+                )
+            );
+        }
+    }
+
+    /**
+     * Step through the multidimensional array and ensure there are no elements
+     * with a value of 2, as this would mean the tile being moved to is occupied
+     * @param array $puzzle    Puzzle matrix in multidimentional array form
+     */
+    protected function ensureMoveValid(array $puzzle)
+    {
+        array_walk_recursive($puzzle, function ($item, $key) {
+            if ($item === 2 || $item === -1) {
+                throw new RuntimeException(
+                    sprintf(
+                        "%s::%s - Invalid move made, cannot move to occupied square",
+                        __CLASS__,
+                        __FUNCTION__
+                    )
+                );
+            }
+        });
+    }
+
+    /**
+     * Returns an array where the first element is the row position and the
+     * second element is the index in that row
+     * @param  int    $moveValue
+     * @return array
+     */
+    protected function getPosition(int $moveValue): array
+    {
+      $rowPositionMagnitude = (int) ($moveValue / $this->dimension);
+
+      if ($moveValue % $this->dimension !== 0) $rowPosition = $rowPositionMagnitude + 1;
+      else $rowPosition = $rowPositionMagnitude;
+
+      $indexPosition = (int) ($moveValue - (($rowPosition - 1) * $this->dimension));
+
+      return [$rowPosition, $indexPosition];
+    }
+
+    /**
+     * Initialises and returns a matrix which represents a move
+     *
+     * Example move from tile 9 to tile 6:
+     *
+     *   0  0  0
+     *   0  0 -1
+     *   0  0  1
+     *
+     * @param  int      $from         A tile index to move from
+     * @param  int      $to           A tile index to move to
+     * @return NumArray $moveMatrix   Move represented as matrix
+     */
+    protected function createMoveMatrix(int $from, int $to): NumArray
+    {
+        $moveArray = [];
+        $fromPosition = $this->getPosition($from);
+        $toPosition = $this->getPosition($to);
+
+        $this->adjacestTileGuard($fromPosition, $toPosition);
+
+
+        // Iterate by dimension to generate each puzzle row, check when
+        // the iteration is for a row that has been updated and then
+        // set the correct element/s in row for from and to move
+        foreach (range(1, $this->dimension) as $rowIndex) {
+            $puzzleRow = array_fill(0, $this->dimension, 0);
+            if ($rowIndex === $fromPosition[0]) $puzzleRow[$fromPosition[1] - 1] = -1;
+            if ($rowIndex === $toPosition[0]) $puzzleRow[$toPosition[1] - 1] = 1;
+
+            $moveArray[] = $puzzleRow;
+        }
+
+        $moveMatrix = new NumArray(
+            $moveArray
+        );
+
+        return $moveMatrix;
+    }
+
+    /**
+     * Guard against being able to make illegal moves across more than one tile
+     * @param  array $fromPosition
+     * @param  array $toPosition
+     * @throws RuntimeException
+     */
+    protected function adjacestTileGuard(array $fromPosition, array $toPosition)
+    {
+        // If move is in the same row the position indexes should only be one apart
+        if ($fromPosition[0] === $toPosition[0]) {
+            if (abs($fromPosition[1] - $toPosition[1]) !== 1) {
+                throw new RuntimeException(
+                    sprintf(
+                        "%s::%s - Invalid move made, those squares arent together!",
+                        __CLASS__,
+                        __FUNCTION__
+                    )
+                );
+            }
+        }
+
+        // If move it in adjacent row then column permissions must be the same
+        if (abs($fromPosition[0] - $toPosition[0]) === 1) {
+            if ($fromPosition[1] !== $toPosition[1]) {
+                throw new RuntimeException(
+                    sprintf(
+                        "%s::%s - Invalid move made, those squares arent together!",
+                        __CLASS__,
+                        __FUNCTION__
+                    )
+                );
+            }
+        }
+
+        // If move is greater than one row apart then you can never do this
+        if (abs($fromPosition[0] - $toPosition[0]) > 1) {
+            throw new RuntimeException(
+                sprintf(
+                    "%s::%s - Invalid move made, those squares arent together!",
+                    __CLASS__,
+                    __FUNCTION__
+                )
+            );
+        }
+    }
+
+    /**
+     * Ensure the index is valid for the puzzle size
+     *
+     * @param int $from
+     * @param int $to
+     */
+    protected function isValidIndexForMove(int $from, int $to)
+    {
+        $indexes = range(1, $this->puzzleSize);
+
+        if (in_array($from, $indexes) === false) {
+            throw new RuntimeException("Move index is not valid");
+        }
+
+        if (in_array($to, $indexes) === false) {
+            throw new RuntimeException("Move index is not valid");
+        }
+    }
+
+    /**
+     * Getter for isSolved class property
+     * @return bool    True if the puzzle is solved
+     */
+    public function getIsSolved(): bool
+    {
+        return $this->isSolved;
+    }
+}
+```
