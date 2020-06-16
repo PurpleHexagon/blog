@@ -62,7 +62,7 @@ export default function HomeTemplate({
       <Box display="flex" flexDirection="column">
         <Box
           textAlign="center"
-          paddingTop={4}
+          paddingTop={0}
           paddingBottom={12}
           paddingX={8}
           style={{
@@ -72,10 +72,24 @@ export default function HomeTemplate({
             "-webkit-clip-path": "polygon(0 0, 100% 0, 100% 60%, 0% 100%)"
           }}
         >
+
+
           <Box marginBottom={4}>
+              <Typography
+                  color="inherit"
+                  variant="h4"
+                  style={{
+                      fontWeight: "bold",
+                      fontFamily:
+                          "Work Sans, -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+                      marginBottom: 4
+                  }}
+              >
+                  Jon Day's Blog
+              </Typography>
             <Typography
               color="inherit"
-              variant="h2"
+              variant="h6"
               style={{
                 fontWeight: "bold",
                 fontFamily:
@@ -83,11 +97,9 @@ export default function HomeTemplate({
                 marginBottom: 4
               }}
             >
-              {title}
-            </Typography>
-            <Typography color="inherit" variant="body1">
               {description}
             </Typography>
+
           </Box>
         </Box>
       </Box>
