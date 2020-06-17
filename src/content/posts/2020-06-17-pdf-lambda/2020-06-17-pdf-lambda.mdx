@@ -44,7 +44,9 @@ Description: >
 Globals:
     Function:
         Timeout: 15
-
+    Api:
+        BinaryMediaTypes:
+            - "*~1*"
 Resources:
     PdfApiFunction:
         Type: AWS::Serverless::Function
