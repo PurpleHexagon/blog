@@ -5,7 +5,7 @@
   "author": "Ryan Bell <ryanbell@gmail.com> (@iRyanBell)",
   "license": "MIT",
   "scripts": {
-    "deploy": "gatsby build --prefix-paths && gh-pages -d public",
+    "deploy": "gatsby build --prefix-paths && cp CNAME public && gh-pages -d public",
     "start": "gatsby develop",
     "build": "gatsby build",
     "clean": "gatsby clean"
