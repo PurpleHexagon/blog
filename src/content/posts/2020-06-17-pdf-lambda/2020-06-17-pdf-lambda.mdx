@@ -1,0 +1,162 @@
+---
+id: "lambda-pdf"
+title: "AWS Lambda PDF Service"
+author: JonDay
+featuredImage: 'coffee-writing-computer-blogging-34600.jpg'
+tags: [aws, javascript]
+---
+
+I recently had to create a PDF service which needed to run on AWS Lambda using Express. I had to do a fair amount of digging to determine how to get this fully working.
+
+I decided to repeat the steps I took in my own time and document them, which hopefully will be useful for someone in the future.
+
+### Key points:
+
+package.json
+
+```json
+{
+  "name": "pdf",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "aws-serverless-express": "^3.3.8",
+    "chrome-aws-lambda": "^2.1.1",
+    "express": "~4.16.1",
+    "puppeteer-core": "^2.1.1",
+  },
+  "devDependencies": {
+    "puppeteer": "^2.1.1",
+  }
+}
+
+```
+
+template.yml
+
+```yml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    aws-sam-express
+    SAM Template
+
+Globals:
+    Function:
+        Timeout: 30
+
+Resources:
+    PdfApiFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: pdf
+            CodeUri: ./
+            Handler: lambda.execute
+            Runtime: nodejs12.x
+            MemorySize: 1024
+            Events:
+                PdfApiRoot:
+                    Type: Api
+                    Properties:
+                        Path: /
+                        Method: ANY
+                PdfApi:
+                    Type: Api
+                    Properties:
+                        Path: /{proxy+}
+                        Method: ANY
+
+Outputs:
+
+    PdfApi:
+        Description: "API Gateway endpoint URL"
+        Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/api"
+
+    PdfApiFunction:
+        Description: "PDF Api Lambda Function ARN"
+        Value: !GetAtt PdfApiFunction.Arn
+
+    PdfApiFunctionIamRole:
+        Description: "Implicit IAM Role created for PDF Api function"
+        Value: !GetAtt PdfApiFunction.Arn
+```
+
+The controller code
+
+```javascript
+const chromium = require('chrome-aws-lambda');
+
+/**
+ * GET /pdf
+ *
+ * Returns a PDF
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+return async (req, res, next) => {
+    const { remoteContent, html } = req.body;
+
+    try {
+
+        const browser = await chromium.puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath,
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true,
+        });
+
+        const page = await browser.newPage();
+        if (remoteContent === true) {
+            await page.goto(
+                `data:text/html;base64, ${Buffer.from(html).toString('base64')}`,
+                { waitUntil: 'networkidle0' },
+            );
+        }
+        else {
+            await page.setContent(html);
+        }
+
+        const pdf = await page.pdf({});
+
+        await browser.close();
+
+        res.setHeader('Content-Type', 'application/pdf');
+
+        return res.send(pdf);
+    }
+    catch (error) {
+        return next(error);
+    }
+};
+```
+
+The following Express Serverless config was required for execute.js
+
+```javascript
+const awsServerlessExpress = require('aws-serverless-express');
+const app = require('./app');
+
+const binaryMimeTypes = [
+    'application/pdf'
+];
+
+const server = awsServerlessExpress.createServer(app, null, binaryMimeTypes);
+
+exports.handler = (event, context) => {
+    return awsServerlessExpress.proxy(server, event, context);
+};
+```
+
+Once this config had been added the content from the Api Gateway was base64 encoded
+
+In order to ensure binary data is returned you must set application/pdf content type in the binaryMediaTypes list for the Api Gateway.99567
+
+The following link was very useful - <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html" target="_blank">Api Gateway encodings doc</a>
+
+
+
+
