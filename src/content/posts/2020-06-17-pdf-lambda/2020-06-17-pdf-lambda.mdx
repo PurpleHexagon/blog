@@ -43,7 +43,7 @@ Description: >
 
 Globals:
     Function:
-        Timeout: 30
+        Timeout: 15
 
 Resources:
     PdfApiFunction:
@@ -86,6 +86,7 @@ The controller code
 ```javascript
 const chromium = require('chrome-aws-lambda');
 
+
 /**
  * GET /pdf
  *
@@ -115,8 +116,7 @@ return async (req, res, next) => {
                 `data:text/html;base64, ${Buffer.from(html).toString('base64')}`,
                 { waitUntil: 'networkidle0' },
             );
-        }
-        else {
+        } else {
             await page.setContent(html);
         }
 
@@ -153,7 +153,7 @@ exports.handler = (event, context) => {
 
 Once this config had been added the content from the Api Gateway was base64 encoded
 
-In order to ensure binary data is returned you must set application/pdf content type in the binaryMediaTypes list for the Api Gateway.99567
+In order to ensure binary data is returned you must set application/pdf content type in the binaryMediaTypes list for the Api Gateway.
 
 The following link was very useful - <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html" target="_blank">Api Gateway encodings doc</a>
 
