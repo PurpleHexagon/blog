@@ -7,7 +7,7 @@ import theme from "prism-react-renderer/themes/palenight";
 import PrismJs from "prismjs"
 import { useEffect } from "react"
 
-Prism.languages.ruby = {
+PrismJs.languages.ruby = {
     'comment': /#[^\r\n]*(\r?\n|$)/g,
     'string': /("|')(\\?.)*?\1/g,
     'regex': {
@@ -44,7 +44,7 @@ export const Code = ({ codeString, language, ...props }) => {
     } else {
 
         return (
-            <Highlight {...defaultProps} Prism={Prism} code={codeString} language={language} theme={theme}>
+            <Highlight {...defaultProps} Prism={PrismJs} code={codeString} language={language}>
                 {({ className, style, tokens, getLineProps, getTokenProps }) => (
                     <pre className={className} style={style}>
             {tokens.map((line, i) => (
