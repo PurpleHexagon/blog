@@ -8,6 +8,8 @@ import { preToCodeBlock } from 'mdx-utils'
 const components = {
     pre: preProps => {
         const props = preToCodeBlock(preProps)
+        console.log(preProps)
+        console.log(props)
         // if there's a codeString and some props, we passed the test
         if (props) {
             return <Code {...props} />
