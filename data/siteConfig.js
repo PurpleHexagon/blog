@@ -38,15 +38,26 @@ module.exports = {
   ],
   jobs: [
     {
+      company: "Huboo",
+      begin: {
+        month: 'Sept',
+        year: '2020'
+      },
+      duration: null,
+      occupation: "Senior Software Engineed",
+      description: "Working with Laravel and AWS to build Warehouse Management System."
+  
+    },
+    {
       company: "Six Agency (contract)",
       begin: {
         month: 'Feb',
         year: '2020'
       },
-      duration: null,
+      duration: '0 yr 6 mos',
       occupation: "Backend Developer",
       description: "Building APIs in node.js for a multinational company. Working with IPCC & DEFRA datasets, Worldpay integration, Salesforce integration."
-  
+
     },
     {
       company: "eKeeper (contract)",
