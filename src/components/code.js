@@ -4,6 +4,8 @@ import Highlight, { defaultProps } from 'prism-react-renderer'
 // import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
 import Prism from 'prism-react-renderer/prism';
 import theme from "prism-react-renderer/themes/palenight";
+import PrismJs from "prismjs"
+import { useEffect } from "react"
 
 Prism.languages.ruby = {
     'comment': /#[^\r\n]*(\r?\n|$)/g,
@@ -26,6 +28,11 @@ Prism.languages.ruby = {
 };
 
 export const Code = ({ codeString, language, ...props }) => {
+    useEffect(() => {
+        // call the highlightAll() function to style our code blocks
+        Prism.highlightAll()
+    })
+
     if (props['react-live']) {
         // return (
         //     <LiveProvider code={codeString} noInline={true}>
@@ -35,11 +42,13 @@ export const Code = ({ codeString, language, ...props }) => {
         //     </LiveProvider>
         // )
     } else {
+
         return (
             <Highlight {...defaultProps} Prism={Prism} code={codeString} language={language} theme={theme}>
                 {({ className, style, tokens, getLineProps, getTokenProps }) => (
                     <pre className={className} style={style}>
-            {tokens.map((line, i) => (
+            {tokens.map((lineimport Prism from "prismjs"
+, i) => (
                 <div {...getLineProps({ line, key: i })}>
                     {line.map((token, key) => (
                         <span {...getTokenProps({ token, key })} />
