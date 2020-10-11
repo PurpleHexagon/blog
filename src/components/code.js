@@ -30,7 +30,7 @@ Prism.languages.ruby = {
 export const Code = ({ codeString, language, ...props }) => {
     useEffect(() => {
         // call the highlightAll() function to style our code blocks
-        Prism.highlightAll()
+        PrismJs.highlightAll()
     })
 
     if (props['react-live']) {
