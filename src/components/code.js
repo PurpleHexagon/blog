@@ -44,7 +44,7 @@ export const Code = ({ codeString, language, ...props }) => {
     } else {
 
         return (
-            <Highlight {...defaultProps} Prism={PrismJs} code={codeString} language={language}>
+            <Highlight {...defaultProps} Prism={PrismJs} code={codeString} language={language} theme={undefined}>
                 {({ className, style, tokens, getLineProps, getTokenProps }) => (
                     <pre className={className} style={style}>
             {tokens.map((line, i) => (
