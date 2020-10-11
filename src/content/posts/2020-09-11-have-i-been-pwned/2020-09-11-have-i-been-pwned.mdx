@@ -1,0 +1,114 @@
+---
+id: "have-i-been-pwned"
+title: "Have I been pwned API"
+author: JonDay
+featuredImage: 'security.jpg'
+tags: [php, security]
+---
+
+My first exploration into the haveibeenpwned API was the searching by range endpoint.javascript
+
+It's a fairly simply endpoint, all you need to do is send it the first 5 characters of the sha1 hash of a password.
+
+The API will then respond with a string containing the other 25 characters of all the password hashes that started with the same five characters.
+
+It also responds with the number of times that password has been in any data breaches.
+
+For example:
+
+0018A45C4D1DEF81644B54AB7F969B88D65:1
+
+You can read more about it here https://haveibeenpwned.com/API/v3#SearchingPwnedPasswordsByRange
+
+My implementation in PHP
+
+```php
+<?php
+namespace PurpleHexagon;
+
+use GuzzleHttp\Client;
+
+class HaveIBeenPwned extends Controller
+{
+    /**
+     * @var Client
+     */
+    protected $client;
+
+    /**
+     * @return void
+     */
+    public function __construct(Client $client)
+    {
+        $this->client = $client;
+    }
+
+    /**
+     * @param string $password
+     */
+    public function isPasswordPwned(string $password)
+    {
+        $hashedPassword = sha1($password);
+        $prefix = substr($hashedPassword, 0 , 5);
+        $suffix = substr($hashedPassword, 5 );
+
+        $response = $this->client->request('GET', "https://api.pwnedpasswords.com/range/$prefix");
+
+        $hashSuffixes = explode("\n", $response->getBody()->getContents());
+
+        $hashSuffixesMapped = array_map(
+            function ($item) {
+                return explode(':', $item);
+            },
+            $hashSuffixes
+        );
+
+        foreach ($hashSuffixesMapped as $hashSuffix) {
+            if (strtoupper($hashSuffix[0]) === strtoupper($suffix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+```
+
+I later realised an even simpler implementation is
+
+```php
+<?php
+namespace PurpleHexagon;
+
+use GuzzleHttp\Client;
+
+class HaveIBeenPwned extends Controller
+{
+    /**
+     * @var Client
+     */
+    protected $client;
+
+    /**
+     * @return void
+     */
+    public function __construct(Client $client)
+    {
+        $this->client = $client;
+    }
+
+    /**
+     * @param string $password
+     */
+    public function isPasswordPwned(string $password)
+    {
+        $hashedPassword = sha1($password);
+        $prefix = substr($hashedPassword, 0 , 5);
+        $suffix = substr($hashedPassword, 5 );
+
+        $response = $this->client->request('GET', "https://api.pwnedpasswords.com/range/$prefix");
+
+        return strpos($response->getBody()->getContents(), strtoupper($suffix));
+    }
+}
+```
