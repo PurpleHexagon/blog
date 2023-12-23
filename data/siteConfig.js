@@ -40,11 +40,22 @@ module.exports = {
     {
       company: "Huboo",
       begin: {
+        month: 'Mar',
+        year: '2021'
+      },
+      duration: '1 yr 5 mos',
+      occupation: "Solutions Designer / Platform Engineer",
+      description: "Producing software architecture and managing platform and infrastructure."
+
+    },
+    {
+      company: "Huboo",
+      begin: {
         month: 'Sept',
         year: '2020'
       },
-      duration: null,
-      occupation: "Senior Software Engineed",
+      duration: '1 yr 6 mos',
+      occupation: "Senior Software Engineer",
       description: "Working with Laravel and AWS to build Warehouse Management System."
   
     },

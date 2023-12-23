@@ -7,8 +7,16 @@ https://gatsby-theme-sky-lite.netlify.com
 
 ## Install dependencies
 
+USE 
+
+* 10.19.0 (set by NODENV_VERSION environment variable)
+
+and use yarn not npm
+
 ```bash
-yarn # Or, npm install
+yarn install
+yarn deploy 
+yarn build
 ```
 
 ## Start development server

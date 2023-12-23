@@ -1,7 +1,7 @@
 module.exports = {
   siteMetadata: {
     title: `Purple Hexagon`,
-    siteUrl: `https://yoursite.com`,
+    siteUrl: `http://purplehexagon.co.uk`,
     description: "[ Exploring Software Development, Data Science and beyond ]",
     components: {
       appbar: {
@@ -18,7 +18,7 @@ module.exports = {
         ]
       },
       footer: {
-        copyright: "purplehexagon.com",
+        copyright: "purplehexagon.co.uk",
         columns: [
           {
             heading: "Find me on",
@@ -76,6 +76,14 @@ module.exports = {
     }
   },
   plugins: [
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        useMozJpeg: false,
+        stripMetadata: true,
+        defaultQuality: 75,
+      },
+    },
     { resolve: `gatsby-theme-sky-lite` },
     {
       resolve: `gatsby-plugin-manifest`,
