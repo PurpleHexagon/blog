@@ -85,18 +85,18 @@ module.exports = {
       },
     },
     { resolve: `gatsby-theme-sky-lite` },
-    {
-      resolve: `gatsby-plugin-manifest`,
-      options: {
-        name: `Sky Lite`,
-        short_name: `SkyLite`,
-        start_url: `/`,
-        background_color: `rebeccapurple`,
-        theme_color: `rebeccapurple`,
-        display: `standalone`,
-        icon: `src/images/favicon.png`
-      }
-    },
+    // {
+    //   resolve: `gatsby-plugin-manifest`,
+    //   options: {
+    //     name: `Sky Lite`,
+    //     short_name: `SkyLite`,
+    //     start_url: `/`,
+    //     background_color: `rebeccapurple`,
+    //     theme_color: `rebeccapurple`,
+    //     display: `standalone`,
+    //     icon: `src/images/favicon.png`
+    //   }
+    // },
     {
       resolve: `gatsby-plugin-mdx`,
       options: {
